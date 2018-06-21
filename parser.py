@@ -1,9 +1,12 @@
 # coding:utf-8
 from enum import Enum
 import re
+import nltk
 
 TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
+
+verbs = []
 
 class Relation(Enum):
     CE = 0 # Cause-Effect = 0
@@ -21,6 +24,7 @@ class TrainingDataManager:
     def __init__(self):
         self.id = -1
         self.sentence = []
+        self.pos = []
         self.index1 = -1 # index of e1
         self.index2 = -1 # index of e2
         self.relation = Relation.OTHER
@@ -31,14 +35,17 @@ class TrainingDataManager:
         self.id = int(tmp[0])
         cnt = 0
         for index, word in enumerate(tmp):
-            if ( index == 0 or word == '' ): continue
+            tmp = ''
             if re.match('<e1>', word):
-                self.sentence.append(word[4:-5])
+                tmp = word[4:-5]
                 self.index1 = cnt
             elif re.match('<e2>', word):
-                self.sentence.append(word[4:-5])
+                tmp = word[4:-5]
                 self.index2 = cnt
-            else: self.sentence.append(word)
+            else: tmp = word
+            if ( index == 0 or tmp == '' ): continue
+            self.sentence.append(tmp)
+            self.pos.append ( nltk.pos_tag([tmp])[0][1] )
             cnt += 1
 
         tmp = re.split('\(|\)|\,',lines[1])
@@ -55,16 +62,27 @@ class TrainingDataManager:
         if ( self.relation != Relation.OTHER ): self.reverse = ( tmp[1] == "e2" )
 
     # kernel 2.1
-    def localContextKernel(self):
+    def localContextKernelVector(self):
+        vector = []
+        return vector
 
     # kernel 2.2
-    def verbKernel(self):
+    def verbKernelVector(self):
+        vector = []
+        for w in verbs:
+            if w in self.sen: vector.append(1)
+            else: vector.append(0)
+        return vector
 
     # kernel 2.3
-    def distanceKernel(self):
+    def distanceKernelVector(self):
+        vector = [abs(self.index1 - self.index2)]
+        return vector
 
     # kernel 2.4
-    def cycKernel(self):
+    def cycKernelVector(self):
+        vector = []
+        return vector
 
 
 # Read Training File
@@ -84,7 +102,6 @@ def readTrainingFile(path):
                 lines.append(l)
             l = f.readline()
     return dataList
-
 
 def main():
     TrainingData = readTrainingFile(TrainFile)
