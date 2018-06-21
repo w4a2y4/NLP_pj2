@@ -42,45 +42,53 @@ class TrainingDataManager:
             cnt += 1
 
         tmp = re.split('\(|\)|\,',lines[1])
-        if re.match('Cause-Effect', tmp[0]):
-            self.relation = Relation.CE
-        elif re.match('Instrument-Agency', tmp[0]):
-            self.relation = Relation.IA
-        elif re.match('Product-Producer', tmp[0]):
-            self.relation = Relation.PP
-        elif re.match('Content-Container', tmp[0]):
-            self.relation = Relation.CC
-        elif re.match('Entity-Origin', tmp[0]):
-            self.relation = Relation.EO
-        elif re.match('Entity-Destination', tmp[0]):
-            self.relation = Relation.ED
-        elif re.match('Component-Whole', tmp[0]):
-            self.relation = Relation.CW
-        elif re.match('Member-Collection', tmp[0]):
-            self.relation = Relation.MC
-        elif re.match('Message-Topic', tmp[0]):
-            self.relation = Relation.MT
+        if re.match('Cause-Effect', tmp[0]): self.relation = Relation.CE
+        elif re.match('Instrument-Agency', tmp[0]): self.relation = Relation.IA
+        elif re.match('Product-Producer', tmp[0]):  self.relation = Relation.PP
+        elif re.match('Content-Container', tmp[0]): self.relation = Relation.CC
+        elif re.match('Entity-Origin', tmp[0]): self.relation = Relation.EO
+        elif re.match('Entity-Destination', tmp[0]):self.relation = Relation.ED
+        elif re.match('Component-Whole', tmp[0]):   self.relation = Relation.CW
+        elif re.match('Member-Collection', tmp[0]): self.relation = Relation.MC
+        elif re.match('Message-Topic', tmp[0]): self.relation = Relation.MT
         else: self.relation = Relation.OTHER
+        if ( self.relation != Relation.OTHER ): self.reverse = ( tmp[1] == "e2" )
 
-        if ( self.relation != Relation.OTHER ):
-            self.reverse = ( tmp[1] == "e2" )
+    # kernel 2.1
+    def localContextKernel(self):
 
-def main():
-    # ReadTraining File
-    TrainingData = []
-    with open(TrainFile, 'r') as f:
+    # kernel 2.2
+    def verbKernel(self):
+
+    # kernel 2.3
+    def distanceKernel(self):
+
+    # kernel 2.4
+    def cycKernel(self):
+
+
+# Read Training File
+def readTrainingFile(path):
+    dataList = []
+    with open(path, 'r') as f:
         manager = TrainingDataManager()
         l = f.readline()
         lines = []
         while l:
             if l == '\n':
                 manager.insertData(lines)
-                TrainingData.append(manager)
+                dataList.append(manager)
                 manager = TrainingDataManager()
                 lines = []
             else:
                 lines.append(l)
             l = f.readline()
+    return dataList
+
+
+def main():
+    TrainingData = readTrainingFile(TrainFile)
+
 
 if __name__ == "__main__":
     main()
