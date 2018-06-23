@@ -8,7 +8,7 @@ TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
 TrainTGFile = "TG_train.txt"
 TestTGFile = "TG_test.txt"
-OutFile = "my_answer_linear_with_tg_fix_direction.txt"
+OutFile = "my_answer_linear_with_tg_variable_direction.txt"
 
 verbs = []
 
@@ -26,15 +26,15 @@ class Relation(Enum):
 
 def relation2string(relation):
     ans = "Other"
-    if( relation == Relation.CE.value ): ans = "Cause-Effect(e2,e1)\n"
-    elif( relation == Relation.IA.value ): ans = "Instrument-Agency(e2,e1)\n"
-    elif( relation == Relation.PP.value ): ans = "Product-Producer(e1,e2)\n"
-    elif( relation == Relation.CC.value ): ans = "Content-Container(e1,e2)\n"
-    elif( relation == Relation.EO.value ): ans = "Entity-Origin(e1,e2)\n"
-    elif( relation == Relation.ED.value ): ans = "Entity-Destination(e1,e2)\n"
-    elif( relation == Relation.CW.value ): ans = "Component-Whole(e1,e2)\n"
-    elif( relation == Relation.MC.value ): ans = "Member-Collection(e2,e1)\n"
-    elif( relation == Relation.MT.value ): ans = "Message-Topic(e1,e2)\n"
+    if( relation == Relation.CE.value ): ans = "Cause-Effect"
+    elif( relation == Relation.IA.value ): ans = "Instrument-Agency"
+    elif( relation == Relation.PP.value ): ans = "Product-Producer"
+    elif( relation == Relation.CC.value ): ans = "Content-Container"
+    elif( relation == Relation.EO.value ): ans = "Entity-Origin"
+    elif( relation == Relation.ED.value ): ans = "Entity-Destination"
+    elif( relation == Relation.CW.value ): ans = "Component-Whole"
+    elif( relation == Relation.MC.value ): ans = "Member-Collection"
+    elif( relation == Relation.MT.value ): ans = "Message-Topic"
     return ans
 
 class DataManager:
@@ -189,7 +189,7 @@ def main():
         dist = dt.distanceKernelVector()
         TG = dt.TGKernelVector()
         TrainingX.append(verb + dist + TG)
-        TrainingY.append(dt.relation.value)
+        TrainingY.append(dt.relation.value + (10 if dt.reverse else 0))
 
     # fit model by training set
     print("Start Training")
@@ -215,7 +215,7 @@ def main():
     # write out result
     with open(OutFile, 'w') as f:
         for index, y in enumerate(TestingY):
-            line = str(index + 8001) + '\t' + relation2string(y)# + "(e1,e2)\n"
+            line = str(index + 8001) + '\t' + relation2string(y % 10) + ("(e1,e2)\n" if y<10 else "(e2,e1)\n")
             f.write(line)
 
 
