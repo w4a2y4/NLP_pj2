@@ -1,5 +1,6 @@
 # coding:utf-8
 from enum import Enum
+from sklearn
 import re
 import nltk
 
@@ -45,6 +46,7 @@ class TrainingDataManager:
             else: tmp = word
             if ( index == 0 or tmp == '' ): continue
             self.sentence.append(tmp)
+            # do POS tagging
             tmppos = nltk.pos_tag([tmp])[0][1]
             self.pos.append ( tmppos )
             if( tmppos[0] == 'V' ): # is verb
@@ -75,14 +77,14 @@ class TrainingDataManager:
         vector = []
         for w in verbs:
             if w in self.sentence:
-                vector.append(1)
-            else: vector.append(0)
+                vector.append(1.0)
+            else: vector.append(0.0)
 
         return vector
 
     # kernel 2.3
     def distanceKernelVector(self):
-        vector = [1/abs(self.index1 - self.index2)]
+        vector = [(1.0)/abs(self.index1 - self.index2)]
         return vector
 
     # kernel 2.4
