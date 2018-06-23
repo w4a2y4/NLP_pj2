@@ -1,6 +1,6 @@
 # coding:utf-8
 from enum import Enum
-from sklearn
+from sklearn.svm import SVC
 import re
 import nltk
 
@@ -21,15 +21,45 @@ class Relation(Enum):
     MT = 8 # Message-Topic
     OTHER = 9 # Other
 
-class TrainingDataManager:
+
+class DataManager:
     def __init__(self):
         self.id = -1
         self.sentence = []
-        self.pos = []
         self.index1 = -1 # index of e1
         self.index2 = -1 # index of e2
+
+    # kernel 2.1
+    def localContextKernelVector(self):
+        vector = []
+        return vector
+
+    # kernel 2.2
+    def verbKernelVector(self):
+        vector = []
+        for w in verbs:
+            if w in self.sentence:
+                vector.append(1.0)
+            else: vector.append(0.0)
+        return vector
+
+    # kernel 2.3
+    def distanceKernelVector(self):
+        vector = [(1.0)/abs(self.index1 - self.index2)]
+        return vector
+
+    # kernel 2.4
+    def cycKernelVector(self):
+        vector = []
+        return vector
+
+
+class TrainingDataManager(DataManager):
+    def __init__(self):
+        super().__init__()
+        self.pos = []
         self.relation = Relation.OTHER
-        self.reverse = False # if the relation is (e2,21)
+        self.reverse = False # if the relation is (e2,e1)
 
     def insertData(self, lines):
         tmp = re.split('\"|\t|\n|\.| ',lines[0])
@@ -67,30 +97,28 @@ class TrainingDataManager:
         else: self.relation = Relation.OTHER
         if ( self.relation != Relation.OTHER ): self.reverse = ( tmp[1] == "e2" )
 
-    # kernel 2.1
-    def localContextKernelVector(self):
-        vector = []
-        return vector
 
-    # kernel 2.2
-    def verbKernelVector(self):
-        vector = []
-        for w in verbs:
-            if w in self.sentence:
-                vector.append(1.0)
-            else: vector.append(0.0)
+class TestingDataManager(DataManager):
 
-        return vector
+    def __init__(self):
+        super().__init__()
 
-    # kernel 2.3
-    def distanceKernelVector(self):
-        vector = [(1.0)/abs(self.index1 - self.index2)]
-        return vector
-
-    # kernel 2.4
-    def cycKernelVector(self):
-        vector = []
-        return vector
+    def insertData(self, lines):
+        tmp = re.split('\"|\t|\n|\.| ',lines[0])
+        self.id = int(tmp[0])
+        cnt = 0
+        for index, word in enumerate(tmp):
+            tmp = ''
+            if re.match('<e1>', word):
+                tmp = word[4:-5]
+                self.index1 = cnt
+            elif re.match('<e2>', word):
+                tmp = word[4:-5]
+                self.index2 = cnt
+            else: tmp = word
+            if ( index == 0 or tmp == '' ): continue
+            self.sentence.append(tmp)
+            cnt += 1
 
 
 # Read Training File
@@ -111,11 +139,40 @@ def readTrainingFile(path):
             l = f.readline()
     return dataList
 
+
+# Read Testing File
+def readTestingFile(path):
+    dataList = []
+    with open(path, 'r') as f:
+        l = f.readline()
+        while l:
+            manager = TestingDataManager()
+            manager.insertData(l)
+            dataList.append(manager)
+            l = f.readline()
+    return dataList
+
+
 def main():
     TrainingData = readTrainingFile(TrainFile)
-    for dt in TrainingData:
+    print("Finish Preprocessing.")
+    TrainingX = []
+    TrainingY = []
+    for dt in TrainingData[:100]:
         verb = dt.verbKernelVector()
-        dist = dt.verbKernelVector()
+        dist = dt.distanceKernelVector()
+        TrainingX.append(verb + dist)
+        TrainingY.append(dt.relation.value)
+
+    # fit model by training set
+    print("Start Training")
+    clf = SVC(kernel='linear', probability=True)
+    clf.fit(TrainingX, TrainingY)
+
+    # testing data
+    TestingData = readTestingFile(TestFile)
+    print("Finish reading testing file.")
+
 
 if __name__ == "__main__":
     main()
