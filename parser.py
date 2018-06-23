@@ -131,7 +131,8 @@ def readTrainingFile(path):
         while l:
             if l == '\n':
                 manager.insertData(lines)
-                dataList.append(manager)
+                if( manager.relation != Relation.OTHER ):
+                    dataList.append(manager)
                 manager = TrainingDataManager()
                 lines = []
             else:
