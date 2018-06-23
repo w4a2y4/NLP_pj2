@@ -66,22 +66,22 @@ class TrainingDataManager(DataManager):
         self.id = int(tmp[0])
         cnt = 0
         for index, word in enumerate(tmp):
-            tmp = ''
+            w = ''
             if re.match('<e1>', word):
-                tmp = word[4:-5]
+                w = word[4:-5]
                 self.index1 = cnt
             elif re.match('<e2>', word):
-                tmp = word[4:-5]
+                w = word[4:-5]
                 self.index2 = cnt
-            else: tmp = word
-            if ( index == 0 or tmp == '' ): continue
-            self.sentence.append(tmp)
+            else: w = word
+            if ( index == 0 or w == '' ): continue
+            self.sentence.append(w)
             # do POS tagging
-            tmppos = nltk.pos_tag([tmp])[0][1]
+            tmppos = nltk.pos_tag([w])[0][1]
             self.pos.append ( tmppos )
             if( tmppos[0] == 'V' ): # is verb
-                if( tmp not in verbs ):
-                    verbs.append(tmp)
+                if( w not in verbs ):
+                    verbs.append(w)
             cnt += 1
 
         tmp = re.split('\(|\)|\,',lines[1])
@@ -103,21 +103,21 @@ class TestingDataManager(DataManager):
     def __init__(self):
         super().__init__()
 
-    def insertData(self, lines):
-        tmp = re.split('\"|\t|\n|\.| ',lines[0])
+    def insertData(self, line):
+        tmp = re.split('\"|\t|\n|\.| ',line)
         self.id = int(tmp[0])
         cnt = 0
         for index, word in enumerate(tmp):
-            tmp = ''
+            w = ''
             if re.match('<e1>', word):
-                tmp = word[4:-5]
+                w = word[4:-5]
                 self.index1 = cnt
             elif re.match('<e2>', word):
-                tmp = word[4:-5]
+                w = word[4:-5]
                 self.index2 = cnt
-            else: tmp = word
-            if ( index == 0 or tmp == '' ): continue
-            self.sentence.append(tmp)
+            else: w = word
+            if ( index == 0 or w == '' ): continue
+            self.sentence.append(w)
             cnt += 1
 
 
@@ -172,6 +172,15 @@ def main():
     # testing data
     TestingData = readTestingFile(TestFile)
     print("Finish reading testing file.")
+
+    TestingX = []
+    for dt in TestingData[:100]:
+        verb = dt.verbKernelVector()
+        dist = dt.distanceKernelVector()
+        TestingX.append(verb + dist)
+
+    result = clf.predict(TestingX)
+    print(result)
 
 
 if __name__ == "__main__":
