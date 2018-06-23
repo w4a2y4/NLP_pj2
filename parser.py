@@ -6,7 +6,7 @@ import nltk
 
 TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
-OutFile = "my_answer2.txt"
+OutFile = "my_answer_linear.txt"
 
 verbs = []
 
@@ -180,7 +180,7 @@ def main():
 
     # fit model by training set
     print("Start Training")
-    clf = SVC(kernel='precomputed', probability=True, verbose=True)
+    clf = SVC(kernel='linear', probability=True, verbose=True)
     clf.fit(TrainingX, TrainingY)
 
     # testing data
