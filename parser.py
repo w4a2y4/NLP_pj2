@@ -6,6 +6,7 @@ import nltk
 
 TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
+OutFile = "my_answer.txt"
 
 verbs = []
 
@@ -21,6 +22,18 @@ class Relation(Enum):
     MT = 8 # Message-Topic
     OTHER = 9 # Other
 
+def relation2string(relation):
+    ans = "Other"
+    if( relation == Relation.CE.value ): ans = "Cause-Effect"
+    elif( relation == Relation.IA.value ): ans = "Instrument-Agency"
+    elif( relation == Relation.PP.value ): ans = "Product-Producer"
+    elif( relation == Relation.CC.value ): ans = "Content-Container"
+    elif( relation == Relation.EO.value ): ans = "Entity-Origin"
+    elif( relation == Relation.ED.value ): ans = "Entity-Destination"
+    elif( relation == Relation.CW.value ): ans = "Component-Whole"
+    elif( relation == Relation.MC.value ): ans = "Member-Collection"
+    elif( relation == Relation.MT.value ): ans = "Message-Topic"
+    return ans
 
 class DataManager:
     def __init__(self):
@@ -159,7 +172,7 @@ def main():
     print("Finish Preprocessing.")
     TrainingX = []
     TrainingY = []
-    for dt in TrainingData[:100]:
+    for dt in TrainingData:
         verb = dt.verbKernelVector()
         dist = dt.distanceKernelVector()
         TrainingX.append(verb + dist)
@@ -175,13 +188,21 @@ def main():
     print("Finish reading testing file.")
 
     TestingX = []
-    for dt in TestingData[:100]:
+    for dt in TestingData:
         verb = dt.verbKernelVector()
         dist = dt.distanceKernelVector()
         TestingX.append(verb + dist)
 
-    result = clf.predict(TestingX)
-    print(result)
+    TestingY = clf.predict(TestingX).tolist()
+    print(TestingY)
+    print(type(TestingY))
+    print("Finish predicting, start writing result to file.")
+
+    # write out result
+    with open(OutFile, 'w') as f:
+        for index, y in enumerate(TestingY):
+            line = str(index + 8000) + '\t' + relation2string(y) + "(e1,e2)\n"
+            f.write(line)
 
 
 if __name__ == "__main__":
