@@ -45,7 +45,11 @@ class TrainingDataManager:
             else: tmp = word
             if ( index == 0 or tmp == '' ): continue
             self.sentence.append(tmp)
-            self.pos.append ( nltk.pos_tag([tmp])[0][1] )
+            tmppos = nltk.pos_tag([tmp])[0][1]
+            self.pos.append ( tmppos )
+            if( tmppos[0] == 'V' ): # is verb
+                if( tmp not in verbs ):
+                    verbs.append(tmp)
             cnt += 1
 
         tmp = re.split('\(|\)|\,',lines[1])
@@ -70,13 +74,15 @@ class TrainingDataManager:
     def verbKernelVector(self):
         vector = []
         for w in verbs:
-            if w in self.sen: vector.append(1)
+            if w in self.sentence:
+                vector.append(1)
             else: vector.append(0)
+
         return vector
 
     # kernel 2.3
     def distanceKernelVector(self):
-        vector = [abs(self.index1 - self.index2)]
+        vector = [1/abs(self.index1 - self.index2)]
         return vector
 
     # kernel 2.4
@@ -105,7 +111,9 @@ def readTrainingFile(path):
 
 def main():
     TrainingData = readTrainingFile(TrainFile)
-
+    for dt in TrainingData:
+        verb = dt.verbKernelVector()
+        dist = dt.verbKernelVector()
 
 if __name__ == "__main__":
     main()
