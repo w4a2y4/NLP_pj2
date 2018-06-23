@@ -6,7 +6,9 @@ import nltk
 
 TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
-OutFile = "my_answer_linear.txt"
+TrainTGFile = "TG_train.txt"
+TestTGFile = "TG_test.txt"
+OutFile = "my_answer_linear_with_tg.txt"
 
 verbs = []
 
@@ -41,6 +43,7 @@ class DataManager:
         self.sentence = []
         self.index1 = -1 # index of e1
         self.index2 = -1 # index of e2
+        self.TG_vector = [] #Vector from TG Files
 
     # kernel 2.1
     def localContextKernelVector(self):
@@ -66,6 +69,9 @@ class DataManager:
         vector = []
         return vector
 
+    def TGKernelVector(self):
+        return self.TG_vector
+
 
 class TrainingDataManager(DataManager):
     def __init__(self):
@@ -74,9 +80,10 @@ class TrainingDataManager(DataManager):
         self.relation = Relation.OTHER
         self.reverse = False # if the relation is (e2,e1)
 
-    def insertData(self, lines):
+    def insertData(self, lines, TG_vec):
         tmp = re.split('\"|\t|\n|\.| ',lines[0])
         self.id = int(tmp[0])
+        self.TG_vector = TG_vec
         cnt = 0
         for index, word in enumerate(tmp):
             w = ''
@@ -116,9 +123,10 @@ class TestingDataManager(DataManager):
     def __init__(self):
         super().__init__()
 
-    def insertData(self, line):
+    def insertData(self, line, TG_vec):
         tmp = re.split('\"|\t|\n|\.| ',line)
         self.id = int(tmp[0])
+        self.TG_vector = TG_vec
         cnt = 0
         for index, word in enumerate(tmp):
             w = ''
@@ -135,15 +143,17 @@ class TestingDataManager(DataManager):
 
 
 # Read Training File
-def readTrainingFile(path):
+def readTrainingFile(path, TGpath):
     dataList = []
-    with open(path, 'r') as f:
+    with open(path, 'r') as f, open(TGpath, 'r') as TGf:
         manager = TrainingDataManager()
         l = f.readline()
         lines = []
         while l:
             if l == '\n':
-                manager.insertData(lines)
+                TGl = TGf.readline()
+                TG_vector = [float(i) for i in TGl.split('\t')]
+                manager.insertData(lines, TG_vector)
                 if( manager.relation != Relation.OTHER ):
                     dataList.append(manager)
                 manager = TrainingDataManager()
@@ -155,27 +165,30 @@ def readTrainingFile(path):
 
 
 # Read Testing File
-def readTestingFile(path):
+def readTestingFile(path, TGpath):
     dataList = []
-    with open(path, 'r') as f:
+    with open(path, 'r') as f, open(TGpath, 'r') as TGf:
         l = f.readline()
         while l:
+            TGl = TGf.readline()
+            TG_vector = [float(i) for i in TGl.split('\t')]
             manager = TestingDataManager()
-            manager.insertData(l)
+            manager.insertData(l, TG_vector)
             dataList.append(manager)
             l = f.readline()
     return dataList
 
 
 def main():
-    TrainingData = readTrainingFile(TrainFile)
+    TrainingData = readTrainingFile(TrainFile, TrainTGFile)
     print("Finish Preprocessing.")
     TrainingX = []
     TrainingY = []
     for dt in TrainingData:
         verb = dt.verbKernelVector()
         dist = dt.distanceKernelVector()
-        TrainingX.append(verb + dist)
+        TG = dt.TGKernelVector()
+        TrainingX.append(verb + dist + TG)
         TrainingY.append(dt.relation.value)
 
     # fit model by training set
@@ -184,14 +197,15 @@ def main():
     clf.fit(TrainingX, TrainingY)
 
     # testing data
-    TestingData = readTestingFile(TestFile)
+    TestingData = readTestingFile(TestFile, TestTGFile)
     print("Finish reading testing file.")
 
     TestingX = []
     for dt in TestingData:
         verb = dt.verbKernelVector()
         dist = dt.distanceKernelVector()
-        TestingX.append(verb + dist)
+        TG = dt.TGKernelVector()
+        TestingX.append(verb + dist + TG)
 
     TestingY = clf.predict(TestingX).tolist()
     print(TestingY)
