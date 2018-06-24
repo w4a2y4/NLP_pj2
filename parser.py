@@ -8,7 +8,8 @@ TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
 TrainTGFile = "TG_train.txt"
 TestTGFile = "TG_test.txt"
-OutFile = "my_answer_linear_with_tg_variable_direction.txt"
+OutFile = "my_answer_linear_with_tg_variable_direction_threshold030_condition.txt"
+OtherThreshold = 0.30
 
 verbs = []
 
@@ -22,7 +23,7 @@ class Relation(Enum):
     CW = 6 # Component-Whole
     MC = 7 # Member-Collection
     MT = 8 # Message-Topic
-    OTHER = 9 # Other
+    OTHER = 18 # Other
 
 def relation2string(relation):
     ans = "Other"
@@ -189,7 +190,7 @@ def main():
         dist = dt.distanceKernelVector()
         TG = dt.TGKernelVector()
         TrainingX.append(verb + dist + TG)
-        TrainingY.append(dt.relation.value + (10 if dt.reverse else 0))
+        TrainingY.append(dt.relation.value + (9 if dt.reverse else 0))
 
     # fit model by training set
     print("Start Training")
@@ -208,6 +209,7 @@ def main():
         TestingX.append(verb + dist + TG)
 
     TestingY = clf.predict(TestingX).tolist()
+    TestingYProb = clf.predict_proba(TestingX).tolist()
     print(TestingY)
     print(type(TestingY))
     print("Finish predicting, start writing result to file.")
@@ -215,7 +217,11 @@ def main():
     # write out result
     with open(OutFile, 'w') as f:
         for index, y in enumerate(TestingY):
-            line = str(index + 8001) + '\t' + relation2string(y % 10) + ("(e1,e2)\n" if y<10 else "(e2,e1)\n")
+            print(TestingYProb[index][y])
+            if TestingYProb[index][y] <= OtherThreshold or sum([1 if i >= OtherThreshold else 0 for i in TestingYProb[index]]) >= 3 or sorted(TestingYProb[index])[-1] - sorted(TestingYProb[index])[-2] < 0.10:
+                line = str(index + 8001) + '\t' + relation2string(18) + "\n"
+            else:
+                line = str(index + 8001) + '\t' + relation2string(y % 9) + ("(e1,e2)\n" if y<9 else "(e2,e1)\n")
             f.write(line)
 
 
