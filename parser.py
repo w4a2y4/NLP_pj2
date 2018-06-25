@@ -8,8 +8,8 @@ TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
 TrainTGFile = "TG_train.txt"
 TestTGFile = "TG_test.txt"
-OutFile = "my_answer_linear_index_local_pos.txt"
-OtherThreshold = 0.30
+OutFile = "my_answer_linear_index_local_pos_binaryTG_rbf.txt"
+OtherThreshold = 0.3
 
 verbs = []
 tags = []
@@ -38,6 +38,13 @@ def relation2string(relation):
     elif( relation == Relation.MC.value ): ans = "Member-Collection"
     elif( relation == Relation.MT.value ): ans = "Message-Topic"
     return ans
+
+def prob2binary(vector):
+    ans = []
+    for x in vector:
+        ans.append(0.0)
+    ans[vector.index(max(vector))] = 1.0
+    return ans[:-1]
 
 class DataManager:
     def __init__(self):
@@ -106,7 +113,7 @@ class TrainingDataManager(DataManager):
     def insertData(self, lines, TG_vec):
         tmp = re.split('\"|\t|\n|\.| ',lines[0])
         self.id = int(tmp[0])
-        self.TG_vector = TG_vec
+        self.TG_vector = prob2binary(TG_vec)
         cnt = 0
         for index, word in enumerate(tmp):
             w = ''
@@ -151,7 +158,7 @@ class TestingDataManager(DataManager):
     def insertData(self, line, TG_vec):
         tmp = re.split('\"|\t|\n|\.| ',line)
         self.id = int(tmp[0])
-        self.TG_vector = TG_vec
+        self.TG_vector = prob2binary(TG_vec)
         cnt = 0
         for index, word in enumerate(tmp):
             w = ''

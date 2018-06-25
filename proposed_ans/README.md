@@ -125,3 +125,17 @@ P = 1359/2064 =  65.84%     R = 1359/2263 =  60.05%     F1 =  62.81%
 
 MACRO-averaged result (excluding Other):
 P =  64.97%	R =  59.01%	F1 =  61.61%
+
+### my_answer_linear_index_local_pos_binaryTG.txt
+Micro-averaged result (excluding Other):
+P = 1529/2413 =  63.37%     R = 1529/2263 =  67.57%     F1 =  65.40%
+
+MACRO-averaged result (excluding Other):
+P =  62.26%	R =  66.80%	F1 =  64.09%
+
+### my_answer_linear_index_local_pos_binaryTG50.txt
+Micro-averaged result (excluding Other):
+P = 1521/2346 =  64.83%     R = 1521/2263 =  67.21%     F1 =  66.00%
+
+MACRO-averaged result (excluding Other):
+P =  63.38%	R =  66.51%	F1 =  64.68%
