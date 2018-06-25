@@ -193,7 +193,7 @@ def main():
         dist = dt.distanceKernelVector()
         TG = dt.TGKernelVector()
         idx = dt.wordIndexVector()
-        TrainingX.append(verb + dist + TG + idx)
+        TrainingX.append(idx + TG + verb + dist)
         TrainingY.append(dt.relation.value + (9 if dt.reverse else 0))
 
     # fit model by training set
@@ -211,18 +211,15 @@ def main():
         dist = dt.distanceKernelVector()
         TG = dt.TGKernelVector()
         idx = dt.wordIndexVector()
-        TestingX.append(verb + dist + TG + idx)
+        TestingX.append(idx + TG + verb + dist)
 
     TestingY = clf.predict(TestingX).tolist()
     TestingYProb = clf.predict_proba(TestingX).tolist()
-    print(TestingY)
-    print(type(TestingY))
     print("Finish predicting, start writing result to file.")
 
     # write out result
     with open(OutFile, 'w') as f:
         for index, y in enumerate(TestingY):
-            print(TestingYProb[index][y])
             if TestingYProb[index][y] <= OtherThreshold or sum([1 if i >= OtherThreshold else 0 for i in TestingYProb[index]]) >= 3 or sorted(TestingYProb[index])[-1] - sorted(TestingYProb[index])[-2] < 0.10:
                 line = str(index + 8001) + '\t' + relation2string(18) + "\n"
             else:
