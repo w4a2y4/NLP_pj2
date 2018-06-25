@@ -14,6 +14,13 @@ P = 1418/2139 =  66.29%     R = 1418/2263 =  62.66%     F1 =  64.43%
 MACRO-averaged result (excluding Other):
 P =  64.95%	R =  61.70%	F1 =  63.11%
 
+### my_answer_linear_index_local_pos.txt
+Micro-averaged result (excluding Other):
+P = 1467/2145 =  68.39%     R = 1467/2263 =  64.83%     F1 =  66.56%
+
+MACRO-averaged result (excluding Other):
+P =  67.11%	R =  63.96%	F1 =  65.22%
+
 ### my_answer_linear_with_tg.txt
 Micro-averaged result (excluding Other):
 P = 1076/2717 =  39.60%     R = 1076/2263 =  47.55%     F1 =  43.21%

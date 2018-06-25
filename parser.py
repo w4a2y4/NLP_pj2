@@ -8,10 +8,11 @@ TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
 TrainTGFile = "TG_train.txt"
 TestTGFile = "TG_test.txt"
-OutFile = "my_answer_linear_index.txt"
+OutFile = "my_answer_linear_index_local_pos.txt"
 OtherThreshold = 0.30
 
 verbs = []
+tags = []
 
 class Relation(Enum):
     CE = 0 # Cause-Effect = 0
@@ -42,6 +43,7 @@ class DataManager:
     def __init__(self):
         self.id = -1
         self.sentence = []
+        self.pos = []
         self.index1 = -1 # index of e1
         self.index2 = -1 # index of e2
         self.TG_vector = [] #Vector from TG Files
@@ -76,11 +78,28 @@ class DataManager:
     def wordIndexVector(self):
         return [self.index1, self.index2]
 
+    def localPosVector(self, base, ran):
+        index1 = self.index1
+        index2 = self.index2
+        hash1 = []
+        hash2 = []
+
+        for i in range(ran):
+            try:
+                hash1.append(tags.index( self.pos[index1-base+i] ))
+            except Exception:
+                hash1.append(-1)
+        for i in range(ran):
+            try:
+                hash2.append(tags.index( self.pos[index2-base+i] ))
+            except Exception:
+                hash2.append(-1)
+
+        return hash1 + hash2
 
 class TrainingDataManager(DataManager):
     def __init__(self):
         super().__init__()
-        self.pos = []
         self.relation = Relation.OTHER
         self.reverse = False # if the relation is (e2,e1)
 
@@ -102,6 +121,8 @@ class TrainingDataManager(DataManager):
             # do POS tagging
             tmppos = nltk.pos_tag([w])[0][1]
             self.pos.append ( tmppos )
+            if( tmppos not in tags ):
+                tags.append(tmppos)
             if( tmppos[0] == 'V' ): # is verb
                 if( w not in verbs ):
                     verbs.append(w)
@@ -142,6 +163,9 @@ class TestingDataManager(DataManager):
                 self.index2 = cnt
             else: w = word
             if ( index == 0 or w == '' ): continue
+            # do POS tagging
+            tmppos = nltk.pos_tag([w])[0][1]
+            self.pos.append ( tmppos )
             self.sentence.append(w)
             cnt += 1
 
@@ -193,7 +217,8 @@ def main():
         dist = dt.distanceKernelVector()
         TG = dt.TGKernelVector()
         idx = dt.wordIndexVector()
-        TrainingX.append(idx + TG + verb + dist)
+        ps = dt.localPosVector(2, 5)
+        TrainingX.append(idx + TG + ps + verb + dist)
         TrainingY.append(dt.relation.value + (9 if dt.reverse else 0))
 
     # fit model by training set
@@ -211,7 +236,8 @@ def main():
         dist = dt.distanceKernelVector()
         TG = dt.TGKernelVector()
         idx = dt.wordIndexVector()
-        TestingX.append(idx + TG + verb + dist)
+        ps = dt.localPosVector(2, 5)
+        TestingX.append(idx + TG + ps + verb + dist)
 
     TestingY = clf.predict(TestingX).tolist()
     TestingYProb = clf.predict_proba(TestingX).tolist()
