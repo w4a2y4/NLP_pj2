@@ -8,7 +8,7 @@ TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
 TrainTGFile = "TG_train.txt"
 TestTGFile = "TG_test.txt"
-OutFile = "my_answer_linear_with_tg_variable_direction_threshold030_condition.txt"
+OutFile = "my_answer_linear_index.txt"
 OtherThreshold = 0.30
 
 verbs = []
@@ -73,6 +73,9 @@ class DataManager:
     def TGKernelVector(self):
         return self.TG_vector
 
+    def wordIndexVector(self):
+        return [self.index1, self.index2]
+
 
 class TrainingDataManager(DataManager):
     def __init__(self):
@@ -96,13 +99,13 @@ class TrainingDataManager(DataManager):
                 self.index2 = cnt
             else: w = word
             if ( index == 0 or w == '' ): continue
-            self.sentence.append(w)
             # do POS tagging
             tmppos = nltk.pos_tag([w])[0][1]
             self.pos.append ( tmppos )
             if( tmppos[0] == 'V' ): # is verb
                 if( w not in verbs ):
                     verbs.append(w)
+            self.sentence.append(w)
             cnt += 1
 
         tmp = re.split('\(|\)|\,',lines[1])
@@ -189,7 +192,8 @@ def main():
         verb = dt.verbKernelVector()
         dist = dt.distanceKernelVector()
         TG = dt.TGKernelVector()
-        TrainingX.append(verb + dist + TG)
+        idx = dt.wordIndexVector()
+        TrainingX.append(verb + dist + TG + idx)
         TrainingY.append(dt.relation.value + (9 if dt.reverse else 0))
 
     # fit model by training set
@@ -206,7 +210,8 @@ def main():
         verb = dt.verbKernelVector()
         dist = dt.distanceKernelVector()
         TG = dt.TGKernelVector()
-        TestingX.append(verb + dist + TG)
+        idx = dt.wordIndexVector()
+        TestingX.append(verb + dist + TG + idx)
 
     TestingY = clf.predict(TestingX).tolist()
     TestingYProb = clf.predict_proba(TestingX).tolist()
