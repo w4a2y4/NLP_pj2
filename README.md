@@ -8,6 +8,6 @@ tools: https://github.com/2shou/TextGrocery
 
 1. Download all files
 
-2. >>> python3 TG.py
+2. $ python3 TG.py
 
-3. >>> perl semeval2010_task8_scorer-v1.2.pl proposed_answer.txt answer_key.txt > result.txt
+3. $ perl semeval2010_task8_scorer-v1.2.pl proposed_answer.txt answer_key.txt > result.txt
