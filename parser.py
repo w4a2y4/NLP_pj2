@@ -8,8 +8,8 @@ TrainFile = "TRAIN_FILE.txt"
 TestFile = "TEST_FILE.txt"
 TrainTGFile = "TG_train.txt"
 TestTGFile = "TG_test.txt"
-OutFile = "my_answer_linear_index_local_pos_binaryTG_rbf.txt"
-OtherThreshold = 0.3
+OutFile = "my_answer_linear_index_local_pos_tg_other_max1.txt"
+OtherThreshold = 0.30
 
 verbs = []
 tags = []
@@ -189,8 +189,7 @@ def readTrainingFile(path, TGpath):
                 TGl = TGf.readline()
                 TG_vector = [float(i) for i in TGl.split('\t')]
                 manager.insertData(lines, TG_vector)
-                if( manager.relation != Relation.OTHER ):
-                    dataList.append(manager)
+                dataList.append(manager)
                 manager = TrainingDataManager()
                 lines = []
             else:
@@ -207,8 +206,9 @@ def readTestingFile(path, TGpath):
         while l:
             TGl = TGf.readline()
             TG_vector = [float(i) for i in TGl.split('\t')]
+            TG_adj = [(max(1.0, i) if i == max(TG_vector) else i) for i in TG_vector]
             manager = TestingDataManager()
-            manager.insertData(l, TG_vector)
+            manager.insertData(l, TG_adj)
             dataList.append(manager)
             l = f.readline()
     return dataList
@@ -250,10 +250,9 @@ def main():
     TestingYProb = clf.predict_proba(TestingX).tolist()
     print("Finish predicting, start writing result to file.")
 
-    # write out result
     with open(OutFile, 'w') as f:
         for index, y in enumerate(TestingY):
-            if TestingYProb[index][y] <= OtherThreshold or sum([1 if i >= OtherThreshold else 0 for i in TestingYProb[index]]) >= 3 or sorted(TestingYProb[index])[-1] - sorted(TestingYProb[index])[-2] < 0.10:
+            if y == 18:
                 line = str(index + 8001) + '\t' + relation2string(18) + "\n"
             else:
                 line = str(index + 8001) + '\t' + relation2string(y % 9) + ("(e1,e2)\n" if y<9 else "(e2,e1)\n")
